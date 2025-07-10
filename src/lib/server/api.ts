@@ -1,8 +1,10 @@
-import { AUTH_TOKEN } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+import { building } from '$app/environment';
 import { getApiDateRange, toGregorian } from '$lib/date-utils';
 import { blackouts, locations, meta } from './db/schema';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
+if (!env.AUTH_TOKEN && !building) throw new Error('AUTH_TOKEN is not set');
 
 const API_URL = 'https://uiapi2.saapa.ir/api/ebills/PlannedBlackoutsReport';
 
@@ -41,7 +43,7 @@ async function fetchBlackoutsFromApi(
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json; charset=utf-8',
-				Authorization: `Bearer ${AUTH_TOKEN}`,
+				Authorization: `Bearer ${env.AUTH_TOKEN}`,
 				Referer: 'https://bargheman.com/',
 				Origin: 'https://bargheman.com'
 			},

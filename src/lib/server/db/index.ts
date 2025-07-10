@@ -1,11 +1,11 @@
-// The user must create a .env file in the root of the project.
-// It should contain the following line:
-// DATABASE_URL=sqlite.db
-
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
-import { DATABASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+import { building } from '$app/environment';
 import * as schema from './schema';
 
-const sqlite = new Database(DATABASE_URL);
+
+if (!env.DATABASE_URL && !building) throw new Error('DATABASE_URL is not set');
+
+const sqlite = new Database(env.DATABASE_URL ?? 'local.db');
 export const db = drizzle(sqlite, { schema });
