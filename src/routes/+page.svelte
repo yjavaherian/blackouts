@@ -2,9 +2,19 @@
 	import { toRelativeDate, toAmPm, getJalaliDateString } from '$lib/date-utils';
 	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
+	import { RefreshCw, Plus, Trash2, PartyPopper } from 'lucide-svelte';
 
 	export let data: PageData;
 	export let form: ActionData;
+
+	function formatLastRefresh(isoString: string | null | undefined) {
+		if (!isoString) return 'هرگز';
+		const date = new Date(isoString);
+		return new Intl.DateTimeFormat('fa-IR', {
+			dateStyle: 'medium',
+			timeStyle: 'short'
+		}).format(date);
+	}
 </script>
 
 <svelte:head>
@@ -13,13 +23,19 @@
 
 <div dir="rtl" class="container mx-auto min-h-screen bg-gray-50 p-4 font-sans">
 	<header class="mb-8 flex items-center justify-between border-b pb-4">
-		<h1 class="text-3xl font-bold text-gray-800">برنامه قطعی برق</h1>
+		<div class="flex items-baseline gap-4">
+			<h1 class="text-3xl font-bold text-gray-800">برنامه قطعی برق</h1>
+			<p class="text-sm text-gray-500">
+				آخرین بروزرسانی: {formatLastRefresh(data.lastRefresh)}
+			</p>
+		</div>
 		<form method="POST" action="?/refresh" use:enhance>
 			<button
 				type="submit"
-				class="rounded-lg bg-blue-500 px-4 py-2 font-bold text-white transition-colors hover:bg-blue-600"
+				class="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 font-bold text-white transition-colors hover:bg-blue-600"
 			>
-				🔄 بروزرسانی همه
+				<RefreshCw class="h-5 w-5" />
+				<span>بروزرسانی همه</span>
 			</button>
 		</form>
 	</header>
@@ -53,9 +69,10 @@
 					</div>
 					<button
 						type="submit"
-						class="w-full rounded-lg bg-green-500 px-4 py-2 font-bold text-white transition-colors hover:bg-green-600"
+						class="flex w-full items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2 font-bold text-white transition-colors hover:bg-green-600"
 					>
-						افزودن
+						<Plus class="h-5 w-5" />
+						<span>افزودن</span>
 					</button>
 					{#if form?.success === false}
 						<p class="mt-2 text-sm text-red-500">{form.message}</p>
@@ -69,14 +86,17 @@
 				{#each data.locations as location (location.id)}
 					<div class="rounded-xl bg-white p-6 shadow-md">
 						<div class="mb-4 flex items-center justify-between">
-							<h3 class="text-xl font-bold text-gray-800">{location.name}</h3>
+							<div class="flex items-baseline gap-2">
+								<h3 class="text-xl font-bold text-gray-800">{location.name}</h3>
+								<p class="text-sm text-gray-500">({location.billId})</p>
+							</div>
 							<form method="POST" action="?/removeLocation" use:enhance>
 								<input type="hidden" name="id" value={location.id} />
 								<button
 									type="submit"
 									class="font-semibold text-red-500 transition-colors hover:text-red-700"
 								>
-									حذف
+									<Trash2 class="h-5 w-5" />
 								</button>
 							</form>
 						</div>
@@ -98,8 +118,9 @@
 									</div>
 								{/each}
 							{:else}
-								<p class="rounded-lg bg-green-50 p-3 text-green-600">
-									🎉 خوش خبر! قطعی برق برنامه‌ریزی شده‌ای برای این موقعیت وجود ندارد.
+								<p class="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-green-600">
+									<PartyPopper class="h-5 w-5" />
+									<span>خوش خبر! قطعی برق برنامه‌ریزی شده‌ای برای این موقعیت وجود ندارد.</span>
 								</p>
 							{/if}
 						</div>

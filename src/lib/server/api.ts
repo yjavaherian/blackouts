@@ -1,6 +1,6 @@
 import { AUTH_TOKEN } from '$env/static/private';
 import { getApiDateRange, toGregorian } from '$lib/date-utils';
-import { blackouts, locations } from './db/schema';
+import { blackouts, locations, meta } from './db/schema';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
 
@@ -100,4 +100,9 @@ export async function refreshAllBlackouts() {
 	for (const location of allLocations) {
 		await refreshBlackoutsForLocation(location.id, location.billId);
 	}
+
+	await db
+		.insert(meta)
+		.values({ key: 'lastRefresh', value: new Date().toISOString() })
+		.onConflictDoUpdate({ target: meta.key, set: { value: new Date().toISOString() } });
 }

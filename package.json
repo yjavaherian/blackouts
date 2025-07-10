@@ -37,7 +37,8 @@
 	"dependencies": {
 		"better-sqlite3": "^11.8.0",
 		"drizzle-orm": "^0.40.0",
-		"jalaali-js": "^1.2.8"
+		"jalaali-js": "^1.2.8",
+		"lucide-svelte": "^0.525.0"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [

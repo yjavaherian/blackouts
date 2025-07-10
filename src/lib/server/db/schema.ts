@@ -1,6 +1,11 @@
 import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
+export const meta = sqliteTable('meta', {
+	key: text('key').primaryKey(),
+	value: text('value').notNull()
+});
+
 export const locations = sqliteTable('locations', {
 	id: integer('id').primaryKey(),
 	name: text('name').notNull(),

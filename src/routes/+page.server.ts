@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { locations, blackouts } from '$lib/server/db/schema';
+import { locations, blackouts, meta } from '$lib/server/db/schema';
 import { refreshAllBlackouts, refreshBlackoutsForLocation } from '$lib/server/api';
 import { fail } from '@sveltejs/kit';
 import { eq, gte } from 'drizzle-orm';
@@ -18,6 +18,13 @@ function getTodayGregorian() {
 export const load: PageServerLoad = async () => {
 	const today = getTodayGregorian();
 
+	const lastRefreshRow = await db.query.meta.findFirst({ where: eq(meta.key, 'lastRefresh') });
+	const lastRefresh = lastRefreshRow?.value ? new Date(lastRefreshRow.value) : null;
+
+	if (!lastRefresh || new Date().getTime() - lastRefresh.getTime() > 24 * 60 * 60 * 1000) {
+		await refreshAllBlackouts();
+	}
+
 	const allLocations = await db.query.locations.findMany({
 		with: {
 			blackouts: {
@@ -27,8 +34,13 @@ export const load: PageServerLoad = async () => {
 		}
 	});
 
+	const updatedLastRefresh = await db.query.meta.findFirst({
+		where: eq(meta.key, 'lastRefresh')
+	});
+
 	return {
-		locations: allLocations
+		locations: allLocations,
+		lastRefresh: updatedLastRefresh?.value
 	};
 };
 
