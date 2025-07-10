@@ -1,0 +1,32 @@
+# Git and GitHub
+.git
+.github
+.gitignore
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Node.js
+node_modules
+npm-debug.log
+
+# SvelteKit build artifacts
+.svelte-kit
+build/
+
+# Local data and environment
+/data
+.env
+.env.*
+!.env.example
+
+
+# Drizzle local state
+drizzle
+
+# Documentation
+README.md 
+
+*.db
