@@ -22,6 +22,7 @@
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/better-sqlite3": "^7.6.12",
+		"@types/jalaali-js": "^1.2.0",
 		"@types/node": "^22",
 		"drizzle-kit": "^0.30.2",
 		"prettier": "^3.4.2",
@@ -35,12 +36,14 @@
 	},
 	"dependencies": {
 		"better-sqlite3": "^11.8.0",
-		"drizzle-orm": "^0.40.0"
+		"drizzle-orm": "^0.40.0",
+		"jalaali-js": "^1.2.8"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
-			"esbuild",
-			"better-sqlite3"
+			"@tailwindcss/oxide",
+			"better-sqlite3",
+			"esbuild"
 		]
 	}
 }

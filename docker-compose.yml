@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=/app/data/sqlite.db
+    restart: unless-stopped
