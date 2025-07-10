@@ -1,11 +1,10 @@
+import { AUTH_TOKEN } from '$env/static/private';
 import { getApiDateRange, toGregorian } from '$lib/date-utils';
 import { blackouts, locations } from './db/schema';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
 
 const API_URL = 'https://uiapi2.saapa.ir/api/ebills/PlannedBlackoutsReport';
-const AUTH_TOKEN =
-	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IntcIlVzZXJJcFwiOm51bGwsXCJVc2VySWRcIjoxNjk2OTcxOCxcIlNlc3Npb25LZXlcIjpudWxsfSIsImV4cCI6MTc2ODAyMzI0OCwiaWF0IjoxNzUyMTI1NjQ4LCJuYmYiOjE3NTIxMjU2NDh9.EsT5oplpS-C0Skx6DDYNHMfxNbGuaSBE2hQpFJgFiOo';
 
 interface ApiBlackout {
 	reg_date: string;
