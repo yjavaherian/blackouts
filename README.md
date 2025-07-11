@@ -38,6 +38,7 @@ services:
     environment:
       - AUTH_TOKEN="your_actual_auth_token_here" # get it by inspecting network traffic on https://bargheman.com/profile/blackout/my-blackouts
       - DATABASE_URL=/app/data/sqlite.db
+      - ORIGIN=http://localhost:3000
     restart: unless-stopped
 
 volumes:
