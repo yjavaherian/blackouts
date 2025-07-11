@@ -30,27 +30,21 @@ Create a file named `compose.yml` with the following content.
 ```yml
 services:
   app:
-    image: ghcr.io/yjavaherian/blackouts:latest
+    image: ghcr.io/yjavaherian/blackouts:main
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
     volumes:
-      - ./data:/app/data
-    env_file:
-      - .env
+      - data:/app/data
+    environment:
+      - AUTH_TOKEN="your_actual_auth_token_here" # get it by inspecting network traffic on https://bargheman.com/profile/blackout/my-blackouts
+      - DATABASE_URL=/app/data/sqlite.db
+
     restart: unless-stopped
+volumes:
+  data:
 ```
 
-### 2. Create a `.env` File
-
-Create a `.env` file in the same directory. This file will hold your secret token.
-
-```env
-# get it by inspecting network traffic on https://bargheman.com/profile/blackout/my-blackouts
-AUTH_TOKEN="your_actual_auth_token_here"
-DATABASE_URL="/app/data/sqlite.db"
-```
-
-### 3. Run the Application
+### 2. Run the Application
 
 Start the application using Docker Compose:
 
@@ -58,7 +52,7 @@ Start the application using Docker Compose:
 docker compose up -d
 ```
 
-Your personal blackout notifier will now be running and accessible at `http://your_server_ip:3000`.
+Your personal blackout notifier will now be running and accessible at `http://localhost:3000`.
 
 ## Local Development
 
