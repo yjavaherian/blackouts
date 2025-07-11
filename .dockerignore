@@ -26,7 +26,6 @@ build/
 # Drizzle local state
 drizzle
 
-# Documentation
-README.md 
 
+*.md 
 *.db

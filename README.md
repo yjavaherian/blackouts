@@ -38,8 +38,8 @@ services:
     environment:
       - AUTH_TOKEN="your_actual_auth_token_here" # get it by inspecting network traffic on https://bargheman.com/profile/blackout/my-blackouts
       - DATABASE_URL=/app/data/sqlite.db
-
     restart: unless-stopped
+
 volumes:
   data:
 ```
@@ -87,6 +87,8 @@ cp .env.example .env
 Now, edit the `.env` file and add your `AUTH_TOKEN`.
 
 ### 4. Run the Development Server
+
+The database will be created and configured automatically when you first start the app.
 
 ```bash
 pnpm dev
