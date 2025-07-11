@@ -20,7 +20,7 @@ ENV HOST=0.0.0.0
 ENV PORT=3000
 
 COPY --from=build /app/build ./build
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* drizzle.config.ts ./
 RUN pnpm install --prod --frozen-lockfile
 
 # Create data directory for the database

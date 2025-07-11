@@ -17,7 +17,6 @@ npm-debug.log
 build/
 
 # Local data and environment
-/data
 .env
 .env.*
 !.env.example
