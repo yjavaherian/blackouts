@@ -3,9 +3,16 @@
 	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
 	import { RefreshCw, Plus, Trash2, PartyPopper } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	export let data: PageData;
 	export let form: ActionData;
+
+	$: {
+		if (form?.toast) {
+			toast[form.toast.type](form.toast.message);
+		}
+	}
 
 	function formatLastRefresh(isoString: string | null | undefined) {
 		if (!isoString) return 'هرگز';

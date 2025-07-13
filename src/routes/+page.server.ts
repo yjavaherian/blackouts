@@ -61,10 +61,13 @@ export const actions: Actions = {
 			}
 		} catch (error) {
 			// Likely a unique constraint violation on billId
-			return fail(400, { success: false, message: 'شناسه قبض قبلا ثبت شده است' });
+			return fail(400, {
+				success: false,
+				message: 'شناسه قبض قبلا ثبت شده است'
+			});
 		}
 
-		return { success: true };
+		return { success: true, toast: { type: 'success', message: 'موقعیت با موفقیت اضافه شد' } };
 	},
 
 	removeLocation: async ({ request }) => {
@@ -77,11 +80,19 @@ export const actions: Actions = {
 
 		await db.delete(locations).where(eq(locations.id, Number(id)));
 
-		return { success: true };
+		return { success: true, toast: { type: 'success', message: 'موقعیت با موفقیت حذف شد' } };
 	},
 
 	refresh: async () => {
-		await refreshAllBlackouts();
-		return { success: true };
+		try {
+			await refreshAllBlackouts();
+			return { success: true, toast: { type: 'success', message: 'اطلاعات با موفقیت بروز شد' } };
+		} catch (error) {
+			return fail(500, {
+				success: false,
+				message: 'خطا در بروزرسانی اطلاعات',
+				toast: { type: 'error', message: 'خطا در بروزرسانی اطلاعات' }
+			});
+		}
 	}
 };
