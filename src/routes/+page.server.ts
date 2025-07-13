@@ -51,7 +51,7 @@ export const actions: Actions = {
 		const billId = data.get('billId') as string;
 
 		if (!name || !billId) {
-			return fail(400, { success: false, message: 'نام و شناسه قبض الزامی است' });
+			return fail(400, { type: 'addLocation', success: false, message: 'نام و شناسه قبض الزامی است' });
 		}
 
 		try {
@@ -62,6 +62,7 @@ export const actions: Actions = {
 		} catch (error) {
 			// Likely a unique constraint violation on billId
 			return fail(400, {
+				type: 'addLocation',
 				success: false,
 				message: 'شناسه قبض قبلا ثبت شده است'
 			});

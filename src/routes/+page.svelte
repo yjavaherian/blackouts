@@ -4,9 +4,13 @@
 	import type { PageData, ActionData } from './$types';
 	import { RefreshCw, Plus, Trash2, PartyPopper, Lightbulb } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 	export let form: ActionData;
+	let refreshing = false;
+	let adding = false;
+	let removing: number | null = null;
 
 	$: {
 		if (form?.toast) {
@@ -39,13 +43,24 @@
 				<p class="text-xs text-gray-500 sm:text-sm">
 					آخرین بروزرسانی: {formatLastRefresh(data.lastRefresh)}
 				</p>
-				<form method="POST" action="?/refresh" use:enhance>
+				<form
+					method="POST"
+					action="?/refresh"
+					use:enhance={() => {
+						refreshing = true;
+						return async ({ result }) => {
+							await invalidateAll();
+							refreshing = false;
+						};
+					}}
+				>
 					<button
 						type="submit"
-						class="flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950"
+						disabled={refreshing}
+						class="flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 disabled:cursor-not-allowed disabled:opacity-50"
 					>
-						<RefreshCw class="h-4 w-4" />
-						<span>بروزرسانی همه</span>
+						<RefreshCw class={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+						<span>{refreshing ? 'در حال بروزرسانی...' : 'بروزرسانی همه'}</span>
 					</button>
 				</form>
 			</div>
@@ -55,7 +70,21 @@
 			<aside class="lg:col-span-1">
 				<div class="sticky top-8 rounded-lg border bg-white p-6 shadow-sm">
 					<h2 class="mb-4 text-xl font-semibold text-gray-800">افزودن موقعیت جدید</h2>
-					<form method="POST" action="?/addLocation" use:enhance class="space-y-4">
+					<form
+						method="POST"
+						action="?/addLocation"
+						use:enhance={({ form: formEl }) => {
+							adding = true;
+							return async ({ result }) => {
+								await invalidateAll();
+								adding = false;
+								if (result.type === 'success') {
+									formEl.reset();
+								}
+							};
+						}}
+						class="space-y-4"
+					>
 						<div>
 							<label for="name" class="mb-1 block text-sm font-medium text-gray-700"
 								>نام موقعیت</label
@@ -84,12 +113,13 @@
 						</div>
 						<button
 							type="submit"
-							class="flex w-full items-center justify-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950"
+							disabled={adding}
+							class="flex w-full items-center justify-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<Plus class="h-4 w-4" />
-							<span>افزودن</span>
+							<Plus class={`h-4 w-4 ${adding ? 'animate-spin' : ''}`} />
+							<span>{adding ? 'در حال افزودن...' : 'افزودن'}</span>
 						</button>
-						{#if form?.success === false}
+						{#if form?.success === false && form?.type === 'addLocation'}
 							<p class="mt-2 text-sm text-red-600">{form.message}</p>
 						{/if}
 					</form>
@@ -114,14 +144,25 @@
 									<h3 class="text-lg font-semibold text-gray-800">{location.name}</h3>
 									<p class="font-mono text-xs text-gray-500">({location.billId})</p>
 								</div>
-								<form method="POST" action="?/removeLocation" use:enhance>
+								<form
+									method="POST"
+									action="?/removeLocation"
+									use:enhance={() => {
+										removing = location.id;
+										return async ({ result }) => {
+											await invalidateAll();
+											removing = null;
+										};
+									}}
+								>
 									<input type="hidden" name="id" value={location.id} />
 									<button
 										type="submit"
-										class="rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+										disabled={removing === location.id}
+										class="rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
 										aria-label="حذف موقعیت"
 									>
-										<Trash2 class="h-4 w-4" />
+										<Trash2 class={`h-4 w-4 ${removing === location.id ? 'animate-spin' : ''}`} />
 									</button>
 								</form>
 							</div>
@@ -131,21 +172,22 @@
 										{#each location.blackouts as blackout (blackout.id)}
 											<li class="flex items-start gap-4">
 												<div class="flex-1">
-													<p class="font-semibold text-gray-800">
-														{toRelativeDate(blackout.outageDate)}
-													</p>
-													<p class="text-sm text-gray-600">
-														<span class="mr-1 text-xs font-normal text-gray-500"
-															>({getJalaliDateString(blackout.outageDate)})</span
-														>
-														ساعت <strong class="font-semibold"
-															>{toAmPm(blackout.startTime)}</strong
-														>
-														تا <strong class="font-semibold"
-															>{toAmPm(blackout.endTime)}</strong
-														>
-													</p>
-													
+													<div class="flex items-baseline justify-between">
+														<p class="font-semibold text-gray-800">
+															{toRelativeDate(blackout.outageDate)}
+															<span class="mr-1 text-xs font-normal text-gray-500"
+																>({getJalaliDateString(blackout.outageDate)})</span
+															>
+														</p>
+														<p class="text-sm text-gray-600">
+															ساعت <strong class="font-semibold"
+																>{toAmPm(blackout.startTime)}</strong
+															>
+															تا <strong class="font-semibold"
+																>{toAmPm(blackout.endTime)}</strong
+															>
+														</p>
+													</div>
 												</div>
 											</li>
 										{/each}
