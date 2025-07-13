@@ -73,10 +73,13 @@ export function toRelativeDate(gregorianDate: string): string {
 		targetDay.getDate()
 	);
 
+	// For future dates, show the weekday name
 	if (diff > 1) {
-		return `${targetJalali.jd} ${PERSIAN_MONTHS[targetJalali.jm - 1]} (${diff} روز دیگر)`;
+		const weekday = PERSIAN_WEEKDAYS[targetDay.getDay()];
+		return weekday;
 	}
 
+	// This case should not be reached for future dates, but keeping for completeness
 	const weekday = PERSIAN_WEEKDAYS[targetDay.getDay()];
 	return `${weekday}، ${targetJalali.jy}/${targetJalali.jm}/${targetJalali.jd}`;
 }
