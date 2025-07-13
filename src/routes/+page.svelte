@@ -39,16 +39,16 @@
 				<p class="text-xs text-gray-500 sm:text-sm">
 					آخرین بروزرسانی: {formatLastRefresh(data.lastRefresh)}
 				</p>
+				<form method="POST" action="?/refresh" use:enhance>
+					<button
+						type="submit"
+						class="flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950"
+					>
+						<RefreshCw class="h-4 w-4" />
+						<span>بروزرسانی همه</span>
+					</button>
+				</form>
 			</div>
-			<form method="POST" action="?/refresh" use:enhance>
-				<button
-					type="submit"
-					class="flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950"
-				>
-					<RefreshCw class="h-4 w-4" />
-					<span>بروزرسانی همه</span>
-				</button>
-			</form>
 		</header>
 
 		<main class="grid grid-cols-1 gap-10 lg:grid-cols-3">
@@ -65,7 +65,7 @@
 								name="name"
 								id="name"
 								required
-								class="block w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder-gray-400 transition-colors focus:border-gray-500 focus:ring-0 focus:outline-none"
+								class="block w-full rounded-md border-gray-300 bg-transparent px-3 py-2 text-sm placeholder-gray-400 transition-colors focus:border-gray-500 focus:ring-0 focus:outline-none"
 								placeholder="مثال: خانه"
 							/>
 						</div>
@@ -78,7 +78,7 @@
 								name="billId"
 								id="billId"
 								required
-								class="block w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder-gray-400 transition-colors focus:border-gray-500 focus:ring-0 focus:outline-none"
+								class="block w-full rounded-md border-gray-300 bg-transparent px-3 py-2 text-sm placeholder-gray-400 transition-colors focus:border-gray-500 focus:ring-0 focus:outline-none"
 								placeholder="یک کد ۱۳ رقمی"
 							/>
 						</div>
@@ -108,7 +108,7 @@
 					</div>
 				{:else}
 					{#each data.locations as location (location.id)}
-						<div class="rounded-lg border bg-white shadow-sm">
+						<div class="rounded-lg border-r-4 border-orange-400 bg-white shadow-sm">
 							<div class="flex items-center justify-between border-b p-4 sm:p-6">
 								<div class="flex items-baseline gap-2">
 									<h3 class="text-lg font-semibold text-gray-800">{location.name}</h3>
@@ -130,15 +130,14 @@
 									<ul class="space-y-4">
 										{#each location.blackouts as blackout (blackout.id)}
 											<li class="flex items-start gap-4">
-												<div class="mt-1 h-2 w-2 rounded-full bg-orange-400" />
 												<div class="flex-1">
 													<p class="font-semibold text-gray-800">
 														{toRelativeDate(blackout.outageDate)}
+													</p>
+													<p class="text-sm text-gray-600">
 														<span class="mr-1 text-xs font-normal text-gray-500"
 															>({getJalaliDateString(blackout.outageDate)})</span
 														>
-													</p>
-													<p class="text-sm text-gray-600">
 														ساعت <strong class="font-semibold"
 															>{toAmPm(blackout.startTime)}</strong
 														>
