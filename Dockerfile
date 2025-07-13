@@ -25,8 +25,7 @@ RUN pnpm install --prod --frozen-lockfile
 
 # Add files needed for runtime database migrations
 COPY --from=build /app/drizzle.config.ts ./
-RUN mkdir -p src/lib/server/db
-COPY --from=build /app/src/lib/server/db/schema.ts ./src/lib/server/db/schema.ts
+COPY --from=build /app/drizzle ./drizzle
 
 # Create data directory for the database
 RUN mkdir -p /app/data
