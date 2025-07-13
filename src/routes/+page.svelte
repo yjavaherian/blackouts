@@ -2,7 +2,7 @@
 	import { toRelativeDate, toAmPm, getJalaliDateString } from '$lib/date-utils';
 	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
-	import { RefreshCw, Plus, Trash2, PartyPopper } from 'lucide-svelte';
+	import { RefreshCw, Plus, Trash2, PartyPopper, Lightbulb } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 
 	export let data: PageData;
@@ -31,8 +31,11 @@
 <div dir="rtl" class="min-h-screen bg-gray-50 font-sans text-gray-900">
 	<div class="container mx-auto p-4 sm:p-6 lg:p-8">
 		<header class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-			<div class="flex items-baseline gap-3">
+			<div class="flex items-center gap-3">
+				<Lightbulb class="h-8 w-8 text-yellow-400" />
 				<h1 class="text-2xl font-bold text-gray-800 sm:text-3xl">برنامه قطعی برق</h1>
+			</div>
+			<div class="flex items-baseline gap-3">
 				<p class="text-xs text-gray-500 sm:text-sm">
 					آخرین بروزرسانی: {formatLastRefresh(data.lastRefresh)}
 				</p>
@@ -143,9 +146,7 @@
 															>{toAmPm(blackout.endTime)}</strong
 														>
 													</p>
-													{#if blackout.reason}
-														<p class="mt-1 text-xs text-gray-500">{blackout.reason}</p>
-													{/if}
+													
 												</div>
 											</li>
 										{/each}
