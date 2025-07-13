@@ -1,31 +1,31 @@
-# Bargh-Man Blackout Notifier
+# اطلاع‌رسان خاموشی برق
 
 [![Docker Publish](https://github.com/yjavaherian/blackouts/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/yjavaherian/blackouts/actions/workflows/docker-publish.yml)
 
-A simple, self-hosted web application to monitor planned electricity blackouts for any location in Iran, using data from the official "Bargh-e-Man" service. This tool helps you stay informed by providing a clean, fast, and user-friendly interface to view scheduled power outages.
+یک برنامه وب ساده و خودمیزبان برای نظارت بر خاموشی‌های برنامه‌ریزی شده برق در هر نقطه از ایران، با استفاده از داده‌های سرویس رسمی "برق‌من". این ابزار به شما کمک می‌کند تا با ارائه رابطی تمیز، سریع و کاربرپسند برای مشاهده قطعی‌های برنامه‌ریزی شده برق، همیشه مطلع باشید.
 
 ![Screenshot](screenshot.png)
 
-## Features
+## ویژگی‌ها
 
-- **Multi-Location Support:** Track planned blackouts for multiple locations (e.g., home, office) in one place.
-- **Automatic Data Refresh:** Blackout data is automatically refreshed every 24 hours, ensuring you always have the latest information.
-- **Manual Refresh:** A manual refresh option is available to fetch the latest data on demand.
-- **Clean & Responsive UI:** A modern, mobile-friendly interface built with SvelteKit and Tailwind CSS.
-- **Easy Deployment:** Deploy the entire application as a single Docker container.
-- **Open Source:** The project is fully open-source and ready for community contributions.
+- **پشتیبانی از چندین مکان:** پیگیری خاموشی‌های برنامه‌ریزی شده برای چندین مکان (مثل خانه، محل کار) در یک مکان.
+- **به‌روزرسانی خودکار داده:** داده‌های خاموشی هر ۲۴ ساعت به‌طور خودکار به‌روزرسانی می‌شود تا همیشه جدیدترین اطلاعات را داشته باشید.
+- **به‌روزرسانی دستی:** گزینه به‌روزرسانی دستی برای دریافت جدیدترین داده‌ها در صورت نیاز موجود است.
+- **رابط کاربری تمیز و واکنش‌گرا:** رابطی مدرن و سازگار با موبایل که با SvelteKit و Tailwind CSS ساخته شده است.
+- **استقرار آسان:** کل برنامه را به عنوان یک کانتینر Docker واحد مستقر کنید.
+- **متن‌باز:** پروژه کاملاً متن‌باز است و آماده مشارکت جامعه است.
 
-## Getting Started: Deploy with Docker
+## شروع: استقرار با Docker
 
-The easiest way to get this application running is by using the pre-built Docker images from the GitHub Container Registry.
+ساده‌ترین راه برای اجرای این برنامه استفاده از تصاویر Docker از پیش ساخته شده از GitHub Container Registry است.
 
-### Prerequisites
+### پیش‌نیازها
 
-- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your server.
+- [Docker](https://docs.docker.com/get-docker/) و [Docker Compose](https://docs.docker.com/compose/install/) روی سرور شما نصب شده باشد.
 
-### 1. Create a `compose.yml` File
+### ۱. ایجاد فایل `compose.yml`
 
-Create a file named `compose.yml` with the following content.
+فایلی به نام `compose.yml` با محتوای زیر ایجاد کنید.
 
 ```yml
 services:
@@ -36,7 +36,7 @@ services:
     volumes:
       - data:/app/data
     environment:
-      - AUTH_TOKEN="your_actual_auth_token_here" # get it by inspecting network traffic on https://bargheman.com/profile/blackout/my-blackouts
+      - AUTH_TOKEN="your_actual_auth_token_here" # آن را با بررسی ترافیک شبکه در https://bargheman.com/profile/blackout/my-blackouts دریافت کنید
       - DATABASE_URL=/app/data/sqlite.db
       - ORIGIN=http://localhost:3000
     restart: unless-stopped
@@ -45,58 +45,58 @@ volumes:
   data:
 ```
 
-### 2. Run the Application
+### ۲. اجرای برنامه
 
-Start the application using Docker Compose:
+برنامه را با استفاده از Docker Compose شروع کنید:
 
 ```bash
 docker compose up -d
 ```
 
-Your personal blackout notifier will now be running and accessible at `http://localhost:3000`.
+اطلاع‌رسان خاموشی شخصی شما اکنون در حال اجرا است و در `http://localhost:3000` قابل دسترسی است.
 
-## Local Development
+## توسعه محلی
 
-Interested in contributing? Here’s how to get the project running on your local machine.
+علاقه‌مند به مشارکت هستید؟ اینجا نحوه اجرای پروژه روی ماشین محلی شما آمده است.
 
-### Prerequisites
+### پیش‌نیازها
 
-- [Node.js](https://nodejs.org/) (v22 or newer)
+- [Node.js](https://nodejs.org/) (نسخه ۲۲ یا جدیدتر)
 - [pnpm](https://pnpm.io/installation)
 
-### 1. Clone the Repository
+### ۱. کلون کردن مخزن
 
 ```bash
 git clone https://github.com/yjavaherian/blackouts.git
 cd blackouts
 ```
 
-### 2. Install Dependencies
+### ۲. نصب وابستگی‌ها
 
 ```bash
 pnpm install
 ```
 
-### 3. Set Up Environment Variables
+### ۳. تنظیم متغیرهای محیطی
 
-Copy the example environment file:
+فایل محیطی نمونه را کپی کنید:
 
 ```bash
 cp .env.example .env
 ```
 
-Now, edit the `.env` file and add your `AUTH_TOKEN`.
+حالا فایل `.env` را ویرایش کنید و `AUTH_TOKEN` خود را اضافه کنید.
 
-### 4. Run the Development Server
+### ۴. اجرای سرور توسعه
 
-The database will be created and configured automatically when you first start the app.
+پایگاه داده هنگام اولین اجرای برنامه به‌طور خودکار ایجاد و پیکربندی می‌شود.
 
 ```bash
 pnpm dev
 ```
 
-The application will be available at `http://localhost:5173`.
+برنامه در `http://localhost:5173` قابل دسترسی خواهد بود.
 
-## License
+## LICENSE
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+این پروژه تحت مجوز MIT مجوز دارد. برای جزئیات به فایل [LICENSE](LICENSE) مراجعه کنید.
