@@ -21,9 +21,12 @@
 	}
 
 	$: if (form?.success === true && form?.type === 'addLocation') {
-		onClose();
-		name = '';
-		billId = '';
+		// Reset form and close dialog on successful submission
+		setTimeout(() => {
+			onClose();
+			name = '';
+			billId = '';
+		}, 100);
 	}
 
 	function handleDialogClick(event: MouseEvent) {
@@ -52,7 +55,7 @@
 
 {#if isOpen}
 	<div
-		class="bg-opacity-20 fixed inset-0 z-50 flex items-center justify-center bg-black p-4 backdrop-blur-md"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
 		on:click={handleDialogClick}
 		on:keydown={handleKeydown}
 		role="dialog"
@@ -92,6 +95,8 @@
 							formElement.reset();
 							name = '';
 							billId = '';
+							// Close dialog after successful submission
+							setTimeout(() => onClose(), 200);
 						}
 					};
 				}}
