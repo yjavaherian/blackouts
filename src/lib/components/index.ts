@@ -6,4 +6,3 @@ export { default as CalendarWeek } from './CalendarWeek.svelte';
 export { default as CalendarDay } from './CalendarDay.svelte';
 export { default as AddLocationDialog } from './AddLocationDialog.svelte';
 export { default as FloatingActionButton } from './FloatingActionButton.svelte';
-export { default as PrintableCalendar } from './PrintableCalendar.svelte';
