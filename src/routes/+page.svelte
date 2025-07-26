@@ -30,7 +30,7 @@
 </svelte:head>
 
 <div dir="rtl" class="min-h-screen bg-gray-50 font-sans text-gray-900">
-	<div class="container mx-auto p-4 sm:p-6 lg:p-8">
+	<div class="container mx-auto px-3 py-4 sm:p-6 lg:p-8">
 		<AppHeader lastRefresh={data.lastRefresh} />
 
 		<main class="w-full">

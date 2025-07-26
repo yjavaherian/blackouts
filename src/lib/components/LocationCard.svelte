@@ -10,12 +10,14 @@
 	let removing = false;
 </script>
 
-<div class="mb-8">
+<div class="mb-6 rounded-xl shadow-sm md:mb-8">
 	<!-- Location Header -->
-	<div class="flex items-center justify-between rounded-t-xl bg-gray-100 p-4 text-gray-800">
-		<div class="flex items-center gap-3">
-			<h2 class="text-xl font-bold">{location.name}</h2>
-			<span class="text-xs text-gray-600">({location.billId})</span>
+	<div
+		class="flex items-center justify-between rounded-t-xl border-t border-r border-l border-t-gray-300 border-r-gray-300 border-l-gray-300 bg-white p-3 text-gray-800 md:p-4"
+	>
+		<div class="flex items-center gap-2 md:gap-3">
+			<h2 class="text-lg font-bold md:text-xl">{location.name}</h2>
+			<span class="text-xs break-all text-gray-600">({location.billId})</span>
 		</div>
 
 		<form
