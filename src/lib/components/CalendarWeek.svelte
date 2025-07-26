@@ -16,7 +16,7 @@
 <div class="overflow-hidden rounded-xl border border-gray-200 bg-white">
 	<!-- Calendar Grid Header -->
 	<div class="grid grid-cols-7 border-b border-gray-200">
-		{#each PERSIAN_WEEKDAYS as dayName, dayIndex}
+		{#each PERSIAN_WEEKDAYS.toReversed() as dayName, dayIndex}
 			<div
 				class="border-l border-gray-200 bg-gray-50 p-3 text-center font-semibold text-gray-700 last:border-l-0"
 			>
