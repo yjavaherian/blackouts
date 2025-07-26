@@ -51,7 +51,11 @@ export const actions: Actions = {
 		const billId = data.get('billId') as string;
 
 		if (!name || !billId) {
-			return fail(400, { type: 'addLocation', success: false, message: 'نام و شناسه قبض الزامی است' });
+			return fail(400, {
+				type: 'addLocation',
+				success: false,
+				message: 'نام و شناسه قبض الزامی است'
+			});
 		}
 
 		try {
@@ -68,7 +72,11 @@ export const actions: Actions = {
 			});
 		}
 
-		return { success: true, toast: { type: 'success', message: 'موقعیت با موفقیت اضافه شد' } };
+		return {
+			type: 'addLocation',
+			success: true,
+			toast: { type: 'success', message: 'موقعیت با موفقیت اضافه شد' }
+		};
 	},
 
 	removeLocation: async ({ request }) => {
