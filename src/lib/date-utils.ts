@@ -1,20 +1,5 @@
 import jalaali from 'jalaali-js';
 
-const PERSIAN_MONTHS = [
-	'فروردین',
-	'اردیبهشت',
-	'خرداد',
-	'تیر',
-	'مرداد',
-	'شهریور',
-	'مهر',
-	'آبان',
-	'آذر',
-	'دی',
-	'بهمن',
-	'اسفند'
-];
-
 const PERSIAN_WEEKDAYS = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
 
 export function toGregorian(jalaliDate: string): string {

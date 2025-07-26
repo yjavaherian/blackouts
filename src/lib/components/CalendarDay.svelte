@@ -22,10 +22,10 @@
 	<!-- No blackouts message -->
 	{#if day.blackouts.length === 0}
 		<div class="mt-2 text-center">
-			<div class="inline-flex rounded-full bg-green-100 p-1">
-				<PartyPopper class="h-3 w-3 text-green-600" />
+			<div class="inline-flex rounded-full bg-green-100 p-2">
+				<PartyPopper class="h-4 w-4 text-green-600" />
 			</div>
-			<p class="mt-1 text-xs font-medium text-green-600">بدون قطعی</p>
+			<p class="mt-1 text-xs font-medium text-green-600">بدون خاموشی</p>
 		</div>
 	{/if}
 </div>

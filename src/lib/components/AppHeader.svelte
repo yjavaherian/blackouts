@@ -12,7 +12,7 @@
 <header class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 	<div class="flex items-center gap-3">
 		<Lightbulb class="h-8 w-8 text-yellow-400" />
-		<h1 class="text-2xl font-bold text-gray-800 sm:text-3xl">برنامه قطعی برق</h1>
+		<h1 class="text-2xl font-bold text-gray-800 sm:text-3xl">برنامه خاموشی برق</h1>
 	</div>
 
 	<div class="flex items-baseline gap-3">

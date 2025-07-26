@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { PageData, ActionData } from './$types';
 	import { useToast } from '$lib/composables/useToast';
 
-	// Components
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import LocationCard from '$lib/components/LocationCard.svelte';
@@ -28,7 +26,7 @@
 </script>
 
 <svelte:head>
-	<title>برنامه قطعی برق</title>
+	<title>برنامه خاموشی برق</title>
 </svelte:head>
 
 <div dir="rtl" class="min-h-screen bg-gray-50 font-sans text-gray-900">
