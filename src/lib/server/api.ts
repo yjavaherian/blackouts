@@ -106,9 +106,9 @@ export async function refreshBlackoutsForLocation(
 	const apiData = apiResult.data || [];
 
 	// Use database transaction to ensure atomicity
-	await db.transaction(async (tx) => {
+	db.transaction((tx) => {
 		// Clear old blackouts for this location
-		await tx.delete(blackouts).where(eq(blackouts.locationId, locationId));
+		tx.delete(blackouts).where(eq(blackouts.locationId, locationId)).run();
 
 		if (apiData.length > 0) {
 			const newBlackouts = apiData.map((b: ApiBlackout) => ({
@@ -120,7 +120,7 @@ export async function refreshBlackoutsForLocation(
 				address: b.address
 			}));
 
-			await tx.insert(blackouts).values(newBlackouts);
+			tx.insert(blackouts).values(newBlackouts).run();
 		}
 	});
 }
@@ -138,8 +138,5 @@ export async function refreshAllBlackouts(userId: number) {
 	);
 
 	// Update user's lastRefresh timestamp
-	await db
-		.update(users)
-		.set({ lastRefresh: new Date().toISOString() })
-		.where(eq(users.id, userId));
+	await db.update(users).set({ lastRefresh: new Date().toISOString() }).where(eq(users.id, userId));
 }
