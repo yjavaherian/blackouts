@@ -36,7 +36,8 @@ export async function validateSession(
 					id: true,
 					mobile: true,
 					createdAt: true,
-					lastLogin: true
+					lastLogin: true,
+					lastRefresh: true
 					// Exclude authToken from the query result
 				}
 			}

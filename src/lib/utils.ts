@@ -32,8 +32,7 @@ export function getWeekDates(): CalendarDay[] {
 		});
 	}
 
-	// Persian calendar displays Saturday first, so reverse for display
-	return weekDates.reverse();
+	return weekDates;
 }
 
 /**

@@ -6,7 +6,7 @@
 	let { day }: { day: CalendarDay } = $props();
 </script>
 
-<div class="border-l border-gray-200 p-2 last:border-l-0 md:p-3 {day.isToday ? 'bg-blue-50' : ''}">
+<div class="border-x border-gray-200 p-2 md:p-3 {day.isToday ? 'bg-blue-50' : ''} h-full">
 	<!-- Blackouts for this day -->
 	<div class="space-y-1 md:space-y-2">
 		{#each day.blackouts as blackout}

@@ -6,7 +6,8 @@ export const users = sqliteTable('users', {
 	mobile: text('mobile').notNull().unique(),
 	authToken: text('auth_token'), // Bargheman API token
 	createdAt: text('created_at').notNull(),
-	lastLogin: text('last_login')
+	lastLogin: text('last_login'),
+	lastRefresh: text('last_refresh') // Store last refresh timestamp directly on user
 });
 
 export const sessions = sqliteTable('sessions', {
@@ -15,11 +16,6 @@ export const sessions = sqliteTable('sessions', {
 		.notNull()
 		.references(() => users.id, { onDelete: 'cascade' }),
 	expiresAt: integer('expires_at').notNull()
-});
-
-export const meta = sqliteTable('meta', {
-	key: text('key').primaryKey(),
-	value: text('value').notNull()
 });
 
 export const locations = sqliteTable('locations', {

@@ -6,6 +6,7 @@ declare global {
 				mobile: string;
 				createdAt: string;
 				lastLogin: string | null;
+				lastRefresh: string | null;
 			} | null;
 			session: {
 				id: string;

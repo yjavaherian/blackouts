@@ -87,6 +87,13 @@
           "primaryKey": true,
           "notNull": true
         },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
         "name": {
           "autoincrement": false,
           "name": "name",
@@ -100,42 +107,25 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "user_id": {
-          "autoincrement": false,
-          "name": "user_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "compositePrimaryKeys": {},
       "indexes": {},
-      "foreignKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "meta": {
-      "name": "meta",
-      "columns": {
-        "key": {
-          "autoincrement": false,
-          "name": "key",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "value": {
-          "autoincrement": false,
-          "name": "value",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
+      "foreignKeys": {
+        "locations_user_id_users_id_fk": {
+          "name": "locations_user_id_users_id_fk",
+          "tableFrom": "locations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "indexes": {},
-      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -147,7 +137,7 @@
           "name": "id",
           "type": "integer",
           "primaryKey": true,
-          "notNull": false
+          "notNull": true
         },
         "mobile": {
           "autoincrement": false,
@@ -176,10 +166,25 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "last_refresh": {
+          "autoincrement": false,
+          "name": "last_refresh",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "compositePrimaryKeys": {},
-      "indexes": {},
+      "indexes": {
+        "users_mobile_unique": {
+          "name": "users_mobile_unique",
+          "columns": [
+            "mobile"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
@@ -192,7 +197,7 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": false
+          "notNull": true
         },
         "user_id": {
           "autoincrement": false,

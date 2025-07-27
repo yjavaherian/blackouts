@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { locations, blackouts, meta } from '$lib/server/db/schema';
+import { locations, blackouts } from '$lib/server/db/schema';
 import { refreshAllBlackouts, refreshBlackoutsForLocation } from '$lib/server/api';
 import { sendOtpCode, verifyOtpCode } from '$lib/server/auth';
 import { deleteSession } from '$lib/server/session';
@@ -37,10 +37,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const today = getTodayGregorian();
 
 	// Check if user's data needs refresh (every 24 hours)
-	const lastRefreshRow = await db.query.meta.findFirst({
-		where: eq(meta.key, `lastRefresh_${user.id}`)
-	});
-	const lastRefresh = lastRefreshRow?.value ? new Date(lastRefreshRow.value) : null;
+	const lastRefresh = user.lastRefresh ? new Date(user.lastRefresh) : null;
 
 	// Trigger refresh in background without blocking the page load
 	if (!lastRefresh || new Date().getTime() - lastRefresh.getTime() > 24 * 60 * 60 * 1000) {
@@ -61,10 +58,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 		}
 	});
 
-	const updatedLastRefresh = await db.query.meta.findFirst({
-		where: eq(meta.key, `lastRefresh_${user.id}`)
-	});
-
 	return {
 		authenticated: true,
 		user: {
@@ -73,7 +66,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			lastLogin: user.lastLogin
 		},
 		locations: userLocations,
-		lastRefresh: updatedLastRefresh?.value
+		lastRefresh: user.lastRefresh
 	};
 };
 

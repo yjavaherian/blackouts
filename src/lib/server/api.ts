@@ -1,5 +1,5 @@
 import { getApiDateRange, toGregorian } from '$lib/date-utils';
-import { blackouts, locations, meta } from './db/schema';
+import { blackouts, locations, users } from './db/schema';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
 import { getAuthTokenForUser } from './auth';
@@ -137,11 +137,9 @@ export async function refreshAllBlackouts(userId: number) {
 		)
 	);
 
+	// Update user's lastRefresh timestamp
 	await db
-		.insert(meta)
-		.values({ key: `lastRefresh_${userId}`, value: new Date().toISOString() })
-		.onConflictDoUpdate({
-			target: meta.key,
-			set: { value: new Date().toISOString() }
-		});
+		.update(users)
+		.set({ lastRefresh: new Date().toISOString() })
+		.where(eq(users.id, userId));
 }

@@ -2,13 +2,13 @@ import jalaali from 'jalaali-js';
 
 // Export PERSIAN_WEEKDAYS for use in other files
 export const PERSIAN_WEEKDAYS = [
+	'شنبه',
 	'یکشنبه',
 	'دوشنبه',
 	'سه‌شنبه',
 	'چهارشنبه',
 	'پنجشنبه',
-	'جمعه',
-	'شنبه'
+	'جمعه'
 ];
 
 export function toGregorian(jalaliDate: string): string {
