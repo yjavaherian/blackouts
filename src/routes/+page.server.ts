@@ -1,9 +1,16 @@
 import { db } from '$lib/server/db';
 import { locations, blackouts, meta } from '$lib/server/db/schema';
 import { refreshAllBlackouts, refreshBlackoutsForLocation } from '$lib/server/api';
-import { isAuthenticated, sendOtpCode, verifyOtpCode, clearAuthToken } from '$lib/server/auth';
-import { fail } from '@sveltejs/kit';
-import { eq, gte } from 'drizzle-orm';
+import { sendOtpCode, verifyOtpCode } from '$lib/server/auth';
+import { deleteSession } from '$lib/server/session';
+import {
+	createOtpSession,
+	getOtpSession,
+	deleteOtpSession,
+	incrementOtpAttempts
+} from '$lib/server/otp-session';
+import { fail, redirect } from '@sveltejs/kit';
+import { eq, gte, and } from 'drizzle-orm';
 import type { PageServerLoad, Actions } from './$types';
 
 function getTodayGregorian() {
@@ -16,10 +23,10 @@ function getTodayGregorian() {
 	return `${y}-${month}-${day}`;
 }
 
-export const load: PageServerLoad = async () => {
-	const authenticated = await isAuthenticated();
+export const load: PageServerLoad = async ({ locals }) => {
+	const user = locals.user;
 
-	if (!authenticated) {
+	if (!user) {
 		return {
 			authenticated: false,
 			locations: [],
@@ -29,14 +36,23 @@ export const load: PageServerLoad = async () => {
 
 	const today = getTodayGregorian();
 
-	const lastRefreshRow = await db.query.meta.findFirst({ where: eq(meta.key, 'lastRefresh') });
+	// Check if user's data needs refresh (every 24 hours)
+	const lastRefreshRow = await db.query.meta.findFirst({
+		where: eq(meta.key, `lastRefresh_${user.id}`)
+	});
 	const lastRefresh = lastRefreshRow?.value ? new Date(lastRefreshRow.value) : null;
 
+	// Trigger refresh in background without blocking the page load
 	if (!lastRefresh || new Date().getTime() - lastRefresh.getTime() > 24 * 60 * 60 * 1000) {
-		await refreshAllBlackouts();
+		// Fire and forget - don't await this
+		refreshAllBlackouts(user.id).catch((error) => {
+			console.error('Background refresh failed for user', user.id, error);
+		});
 	}
 
-	const allLocations = await db.query.locations.findMany({
+	// Get user's locations with their blackouts
+	const userLocations = await db.query.locations.findMany({
+		where: eq(locations.userId, user.id),
 		with: {
 			blackouts: {
 				where: gte(blackouts.outageDate, today),
@@ -46,18 +62,23 @@ export const load: PageServerLoad = async () => {
 	});
 
 	const updatedLastRefresh = await db.query.meta.findFirst({
-		where: eq(meta.key, 'lastRefresh')
+		where: eq(meta.key, `lastRefresh_${user.id}`)
 	});
 
 	return {
 		authenticated: true,
-		locations: allLocations,
+		user: {
+			mobile: user.mobile,
+			createdAt: user.createdAt,
+			lastLogin: user.lastLogin
+		},
+		locations: userLocations,
 		lastRefresh: updatedLastRefresh?.value
 	};
 };
 
 export const actions: Actions = {
-	sendOtp: async ({ request }) => {
+	sendOtp: async ({ request, cookies }) => {
 		const data = await request.formData();
 		const mobile = data.get('mobile') as string;
 
@@ -79,6 +100,16 @@ export const actions: Actions = {
 			});
 		}
 
+		// Create secure OTP session and store mobile number securely
+		const otpSessionId = createOtpSession(mobile);
+		cookies.set('otp-session', otpSessionId, {
+			path: '/',
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax',
+			maxAge: 10 * 60 // 10 minutes
+		});
+
 		return {
 			type: 'sendOtp',
 			success: true,
@@ -86,24 +117,59 @@ export const actions: Actions = {
 		};
 	},
 
-	verifyOtp: async ({ request }) => {
+	verifyOtp: async ({ request, cookies }) => {
 		const data = await request.formData();
-		const mobile = data.get('mobile') as string;
 		const code = data.get('code') as string;
 
-		console.log('Server received - mobile:', mobile, 'code:', code);
-
-		if (!mobile || !code) {
+		// Get mobile number from secure OTP session instead of form data
+		const otpSessionId = cookies.get('otp-session');
+		if (!otpSessionId) {
 			return fail(400, {
 				type: 'verifyOtp',
 				success: false,
-				message: 'شماره موبایل و کد تایید الزامی است'
+				message: 'جلسه تایید منقضی شده است. مجدداً کد را درخواست کنید'
 			});
 		}
 
-		const result = await verifyOtpCode(mobile, code);
+		const otpSession = getOtpSession(otpSessionId);
+		if (!otpSession) {
+			cookies.delete('otp-session', { path: '/' });
+			return fail(400, {
+				type: 'verifyOtp',
+				success: false,
+				message: 'جلسه تایید نامعتبر یا منقضی شده است'
+			});
+		}
+
+		if (!code) {
+			// Increment attempts for invalid code
+			if (!incrementOtpAttempts(otpSessionId)) {
+				cookies.delete('otp-session', { path: '/' });
+				return fail(400, {
+					type: 'verifyOtp',
+					success: false,
+					message: 'تعداد تلاش‌های نامعتبر زیاد است. مجدداً کد را درخواست کنید'
+				});
+			}
+			return fail(400, {
+				type: 'verifyOtp',
+				success: false,
+				message: 'کد تایید الزامی است'
+			});
+		}
+
+		const result = await verifyOtpCode(otpSession.mobile, code);
 
 		if (!result.success) {
+			// Increment attempts for failed verification
+			if (!incrementOtpAttempts(otpSessionId)) {
+				cookies.delete('otp-session', { path: '/' });
+				return fail(400, {
+					type: 'verifyOtp',
+					success: false,
+					message: 'تعداد تلاش‌های نامعتبر زیاد است. مجدداً کد را درخواست کنید'
+				});
+			}
 			return fail(400, {
 				type: 'verifyOtp',
 				success: false,
@@ -111,17 +177,28 @@ export const actions: Actions = {
 			});
 		}
 
-		return {
-			type: 'verifyOtp',
-			success: true,
-			message: 'ورود با موفقیت انجام شد',
-			toast: { type: 'success', message: 'ورود با موفقیت انجام شد' }
-		};
+		// Clean up OTP session
+		deleteOtpSession(otpSessionId);
+		cookies.delete('otp-session', { path: '/' });
+
+		// Set session cookie
+		if (result.sessionId) {
+			const isProduction = process.env.NODE_ENV === 'production';
+			cookies.set('auth-session', result.sessionId, {
+				path: '/',
+				httpOnly: true,
+				secure: isProduction,
+				sameSite: 'lax',
+				maxAge: 30 * 24 * 60 * 60 // 30 days
+			});
+		}
+
+		throw redirect(302, '/');
 	},
 
-	addLocation: async ({ request }) => {
-		const authenticated = await isAuthenticated();
-		if (!authenticated) {
+	addLocation: async ({ request, locals }) => {
+		const user = locals.user;
+		if (!user) {
 			return fail(401, {
 				type: 'addLocation',
 				success: false,
@@ -142,16 +219,34 @@ export const actions: Actions = {
 		}
 
 		try {
-			const newLocation = await db.insert(locations).values({ name, billId }).returning();
+			const newLocation = await db
+				.insert(locations)
+				.values({
+					name,
+					billId,
+					userId: user.id
+				})
+				.returning();
+
 			if (newLocation[0]) {
-				await refreshBlackoutsForLocation(newLocation[0].id, newLocation[0].billId);
+				await refreshBlackoutsForLocation(newLocation[0].id, newLocation[0].billId, user.id);
 			}
 		} catch (error) {
-			// Likely a unique constraint violation on billId
+			console.error('Error adding location:', error);
+
+			// Check if it's a unique constraint violation
+			if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+				return fail(400, {
+					type: 'addLocation',
+					success: false,
+					message: 'موقعیتی با این شناسه قبض قبلاً ثبت شده است'
+				});
+			}
+
 			return fail(400, {
 				type: 'addLocation',
 				success: false,
-				message: 'شناسه قبض قبلا ثبت شده است'
+				message: 'خطا در اضافه کردن موقعیت'
 			});
 		}
 
@@ -162,9 +257,9 @@ export const actions: Actions = {
 		};
 	},
 
-	removeLocation: async ({ request }) => {
-		const authenticated = await isAuthenticated();
-		if (!authenticated) {
+	removeLocation: async ({ request, locals }) => {
+		const user = locals.user;
+		if (!user) {
 			return fail(401, {
 				success: false,
 				message: 'لطفا ابتدا وارد شوید'
@@ -178,14 +273,17 @@ export const actions: Actions = {
 			return fail(400, { success: false, message: 'شناسه مکان نامعتبر است' });
 		}
 
-		await db.delete(locations).where(eq(locations.id, Number(id)));
+		// Make sure the location belongs to the user
+		await db
+			.delete(locations)
+			.where(and(eq(locations.id, Number(id)), eq(locations.userId, user.id)));
 
 		return { success: true, toast: { type: 'success', message: 'موقعیت با موفقیت حذف شد' } };
 	},
 
-	refresh: async () => {
-		const authenticated = await isAuthenticated();
-		if (!authenticated) {
+	refresh: async ({ locals }) => {
+		const user = locals.user;
+		if (!user) {
 			return fail(401, {
 				success: false,
 				message: 'لطفا ابتدا وارد شوید'
@@ -193,7 +291,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			await refreshAllBlackouts();
+			await refreshAllBlackouts(user.id);
 			return { success: true, toast: { type: 'success', message: 'اطلاعات با موفقیت بروز شد' } };
 		} catch (error) {
 			return fail(500, {
@@ -204,12 +302,13 @@ export const actions: Actions = {
 		}
 	},
 
-	logout: async () => {
-		await clearAuthToken();
-		return {
-			type: 'logout',
-			success: true,
-			toast: { type: 'success', message: 'با موفقیت خارج شدید' }
-		};
+	logout: async ({ cookies, locals }) => {
+		if (locals.session) {
+			await deleteSession(locals.session.id);
+		}
+
+		cookies.delete('auth-session', { path: '/' });
+
+		throw redirect(302, '/');
 	}
 };

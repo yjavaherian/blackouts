@@ -1,9 +1,11 @@
 import { db } from './db';
-import { meta } from './db/schema';
+import { users } from './db/schema';
 import { eq } from 'drizzle-orm';
+import { createSession } from './session';
+import { encryptToken, decryptToken } from './crypto';
 
-const OTP_SEND_URL = 'https://uiapi.saapa.ir/api/otp/sendCode';
-const OTP_VERIFY_URL = 'https://uiapi.saapa.ir/api/otp/verifyCode';
+const OTP_SEND_URL = process.env.OTP_SEND_URL || 'https://uiapi.saapa.ir/api/otp/sendCode';
+const OTP_VERIFY_URL = process.env.OTP_VERIFY_URL || 'https://uiapi.saapa.ir/api/otp/verifyCode';
 
 interface OtpSendResponse {
 	TimeStamp: string;
@@ -69,7 +71,7 @@ export async function sendOtpCode(mobile: string): Promise<{ success: boolean; m
 export async function verifyOtpCode(
 	mobile: string,
 	code: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; message: string; sessionId?: string }> {
 	try {
 		const response = await fetch(OTP_VERIFY_URL, {
 			method: 'POST',
@@ -101,15 +103,47 @@ export async function verifyOtpCode(
 			};
 		}
 
-		// Store the auth token in the database
-		await db
-			.insert(meta)
-			.values({ key: 'auth_token', value: result.data.Token })
-			.onConflictDoUpdate({ target: meta.key, set: { value: result.data.Token } });
+		// Find or create user
+		let user = await db.query.users.findFirst({
+			where: eq(users.mobile, mobile)
+		});
+
+		const now = new Date().toISOString();
+
+		if (!user) {
+			// Create new user
+			const encryptedToken = await encryptToken(result.data.Token);
+			const [newUser] = await db
+				.insert(users)
+				.values({
+					mobile,
+					authToken: encryptedToken,
+					createdAt: now,
+					lastLogin: now
+				})
+				.returning();
+			user = newUser;
+		} else {
+			// Update existing user
+			const encryptedToken = await encryptToken(result.data.Token);
+			await db
+				.update(users)
+				.set({
+					authToken: encryptedToken,
+					lastLogin: now
+				})
+				.where(eq(users.id, user.id));
+			user.authToken = encryptedToken;
+			user.lastLogin = now;
+		}
+
+		// Create session
+		const sessionId = await createSession(user.id);
 
 		return {
 			success: true,
-			message: 'Authentication successful'
+			message: 'Authentication successful',
+			sessionId
 		};
 	} catch (error) {
 		console.error('Error verifying OTP:', error);
@@ -120,25 +154,17 @@ export async function verifyOtpCode(
 	}
 }
 
-export async function getAuthToken(): Promise<string | null> {
+export async function getAuthTokenForUser(userId: number): Promise<string | null> {
 	try {
-		const result = await db.select().from(meta).where(eq(meta.key, 'auth_token')).limit(1);
-		return result.length > 0 ? result[0].value : null;
+		const user = await db.query.users.findFirst({
+			where: eq(users.id, userId)
+		});
+		if (!user?.authToken) return null;
+
+		// Decrypt the token before returning
+		return await decryptToken(user.authToken);
 	} catch (error) {
 		console.error('Error retrieving auth token:', error);
 		return null;
-	}
-}
-
-export async function isAuthenticated(): Promise<boolean> {
-	const token = await getAuthToken();
-	return token !== null;
-}
-
-export async function clearAuthToken(): Promise<void> {
-	try {
-		await db.delete(meta).where(eq(meta.key, 'auth_token'));
-	} catch (error) {
-		console.error('Error clearing auth token:', error);
 	}
 }

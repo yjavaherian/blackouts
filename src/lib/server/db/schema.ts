@@ -1,6 +1,22 @@
 import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
+export const users = sqliteTable('users', {
+	id: integer('id').primaryKey(),
+	mobile: text('mobile').notNull().unique(),
+	authToken: text('auth_token'), // Bargheman API token
+	createdAt: text('created_at').notNull(),
+	lastLogin: text('last_login')
+});
+
+export const sessions = sqliteTable('sessions', {
+	id: text('id').primaryKey(),
+	userId: integer('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	expiresAt: integer('expires_at').notNull()
+});
+
 export const meta = sqliteTable('meta', {
 	key: text('key').primaryKey(),
 	value: text('value').notNull()
@@ -8,8 +24,11 @@ export const meta = sqliteTable('meta', {
 
 export const locations = sqliteTable('locations', {
 	id: integer('id').primaryKey(),
+	userId: integer('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
-	billId: text('bill_id').notNull().unique()
+	billId: text('bill_id').notNull()
 });
 
 export const blackouts = sqliteTable('blackouts', {
@@ -24,8 +43,24 @@ export const blackouts = sqliteTable('blackouts', {
 	address: text('address')
 });
 
-export const locationsRelations = relations(locations, ({ many }) => ({
-	blackouts: many(blackouts)
+export const usersRelations = relations(users, ({ many, one }) => ({
+	locations: many(locations),
+	sessions: many(sessions)
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id]
+	})
+}));
+
+export const locationsRelations = relations(locations, ({ many, one }) => ({
+	blackouts: many(blackouts),
+	user: one(users, {
+		fields: [locations.userId],
+		references: [users.id]
+	})
 }));
 
 export const blackoutsRelations = relations(blackouts, ({ one }) => ({

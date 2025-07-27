@@ -2,9 +2,10 @@ import { getApiDateRange, toGregorian } from '$lib/date-utils';
 import { blackouts, locations, meta } from './db/schema';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
-import { getAuthToken } from './auth';
+import { getAuthTokenForUser } from './auth';
 
-const API_URL = 'https://uiapi2.saapa.ir/api/ebills/PlannedBlackoutsReport';
+const API_URL =
+	process.env.BLACKOUTS_API_URL || 'https://uiapi2.saapa.ir/api/ebills/PlannedBlackoutsReport';
 
 interface ApiBlackout {
 	reg_date: string;
@@ -32,15 +33,18 @@ interface ApiResponse {
 }
 
 async function fetchBlackoutsFromApi(
+	userId: number,
 	billId: string,
 	fromDate: string,
 	toDate: string
-): Promise<ApiBlackout[]> {
+): Promise<{ success: boolean; data?: ApiBlackout[]; error?: string }> {
 	try {
-		const authToken = await getAuthToken();
+		const authToken = await getAuthTokenForUser(userId);
 		if (!authToken) {
-			console.error('No auth token available. Please authenticate first.');
-			return [];
+			return {
+				success: false,
+				error: 'No auth token available for user. Please authenticate first.'
+			};
 		}
 
 		const response = await fetch(API_URL, {
@@ -59,56 +63,85 @@ async function fetchBlackoutsFromApi(
 		});
 
 		if (!response.ok) {
-			console.error(`API request failed with status ${response.status}: ${response.statusText}`);
-			return [];
+			return {
+				success: false,
+				error: `API request failed with status ${response.status}: ${response.statusText}`
+			};
 		}
 
 		const result: ApiResponse = await response.json();
 
 		if (result.status !== 200 || !Array.isArray(result.data)) {
-			console.error('API returned an error or malformed data:', result.message || result.error);
-			return [];
+			return {
+				success: false,
+				error: result.message || result.error || 'API returned malformed data'
+			};
 		}
 
-		return result.data;
+		return {
+			success: true,
+			data: result.data
+		};
 	} catch (error) {
-		console.error('Failed to fetch blackouts from API:', error);
-		return [];
+		return {
+			success: false,
+			error: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
+		};
 	}
 }
 
-export async function refreshBlackoutsForLocation(locationId: number, billId: string) {
+export async function refreshBlackoutsForLocation(
+	locationId: number,
+	billId: string,
+	userId: number
+) {
 	const { fromDate, toDate } = getApiDateRange();
-	const apiData = await fetchBlackoutsFromApi(billId, fromDate, toDate);
+	const apiResult = await fetchBlackoutsFromApi(userId, billId, fromDate, toDate);
 
-	// Clear old blackouts for this location
-	await db.delete(blackouts).where(eq(blackouts.locationId, locationId));
-
-	if (apiData.length === 0) {
+	if (!apiResult.success) {
+		console.error(`Failed to fetch blackouts for location ${locationId}:`, apiResult.error);
 		return;
 	}
 
-	const newBlackouts = apiData.map((b) => ({
-		locationId: locationId,
-		outageDate: toGregorian(b.outage_date),
-		startTime: b.outage_time,
-		endTime: b.outage_stop_time,
-		reason: b.reason_outage,
-		address: b.address
-	}));
+	const apiData = apiResult.data || [];
 
-	await db.insert(blackouts).values(newBlackouts);
+	// Use database transaction to ensure atomicity
+	await db.transaction(async (tx) => {
+		// Clear old blackouts for this location
+		await tx.delete(blackouts).where(eq(blackouts.locationId, locationId));
+
+		if (apiData.length > 0) {
+			const newBlackouts = apiData.map((b: ApiBlackout) => ({
+				locationId: locationId,
+				outageDate: toGregorian(b.outage_date),
+				startTime: b.outage_time,
+				endTime: b.outage_stop_time,
+				reason: b.reason_outage,
+				address: b.address
+			}));
+
+			await tx.insert(blackouts).values(newBlackouts);
+		}
+	});
 }
 
-export async function refreshAllBlackouts() {
-	const allLocations = await db.select().from(locations);
+export async function refreshAllBlackouts(userId: number) {
+	const userLocations = await db.query.locations.findMany({
+		where: eq(locations.userId, userId)
+	});
 
-	for (const location of allLocations) {
-		await refreshBlackoutsForLocation(location.id, location.billId);
-	}
+	// Use Promise.all to run all API calls in parallel for better performance
+	await Promise.all(
+		userLocations.map((location) =>
+			refreshBlackoutsForLocation(location.id, location.billId, userId)
+		)
+	);
 
 	await db
 		.insert(meta)
-		.values({ key: 'lastRefresh', value: new Date().toISOString() })
-		.onConflictDoUpdate({ target: meta.key, set: { value: new Date().toISOString() } });
+		.values({ key: `lastRefresh_${userId}`, value: new Date().toISOString() })
+		.onConflictDoUpdate({
+			target: meta.key,
+			set: { value: new Date().toISOString() }
+		});
 }
