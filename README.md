@@ -37,7 +37,6 @@ services:
     volumes:
       - data:/app/data
     environment:
-      - AUTH_TOKEN="your_actual_auth_token_here" # آن را با بررسی ترافیک شبکه در https://bargheman.com/profile/blackout/my-blackouts دریافت کنید
       - DATABASE_URL=/app/data/sqlite.db
       - ORIGIN=http://localhost:3000
     restart: unless-stopped
@@ -55,6 +54,8 @@ docker compose up -d
 ```
 
 اطلاع‌رسان خاموشی شخصی شما اکنون در حال اجرا است و در `http://localhost:3000` قابل دسترسی است.
+
+هنگام اولین بازدید، با فرم احراز هویت مواجه خواهید شد که در آن باید شماره موبایل خود را وارد کرده و کد تایید دریافتی را تأیید کنید.
 
 ## توسعه محلی
 
@@ -85,8 +86,6 @@ pnpm install
 ```bash
 cp .env.example .env
 ```
-
-حالا فایل `.env` را ویرایش کنید و `AUTH_TOKEN` خود را اضافه کنید.
 
 ### ۴. اجرای سرور توسعه
 

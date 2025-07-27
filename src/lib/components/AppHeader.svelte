@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Lightbulb, RefreshCw } from 'lucide-svelte';
+	import { Lightbulb, RefreshCw, LogOut } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { formatLastRefresh } from '$lib/utils';
@@ -7,6 +7,7 @@
 	export let lastRefresh: string | undefined;
 
 	let refreshing = false;
+	let loggingOut = false;
 </script>
 
 <header class="mb-6 md:mb-8">
@@ -21,29 +22,52 @@
 				آخرین بروزرسانی: {formatLastRefresh(lastRefresh)}
 			</p>
 
-			<form
-				method="POST"
-				action="?/refresh"
-				use:enhance={() => {
-					refreshing = true;
-					return async ({ result }) => {
-						await invalidateAll();
-						refreshing = false;
-					};
-				}}
-			>
-				<button
-					type="submit"
-					disabled={refreshing}
-					class="flex w-full items-center justify-center gap-2 rounded-md bg-gray-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-4"
+			<div class="flex gap-2">
+				<form
+					method="POST"
+					action="?/refresh"
+					use:enhance={() => {
+						refreshing = true;
+						return async ({ result }) => {
+							await invalidateAll();
+							refreshing = false;
+						};
+					}}
 				>
-					<RefreshCw class={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-					<span class="hidden sm:inline"
-						>{refreshing ? 'در حال بروزرسانی...' : 'بروزرسانی همه'}</span
+					<button
+						type="submit"
+						disabled={refreshing}
+						class="flex items-center justify-center gap-2 rounded-md bg-gray-800 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
 					>
-					<span class="sm:hidden">{refreshing ? 'بروزرسانی...' : 'بروزرسانی'}</span>
-				</button>
-			</form>
+						<RefreshCw class={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+						<span class="hidden sm:inline"
+							>{refreshing ? 'در حال بروزرسانی...' : 'بروزرسانی همه'}</span
+						>
+						<span class="sm:hidden">{refreshing ? 'بروزرسانی...' : 'بروزرسانی'}</span>
+					</button>
+				</form>
+
+				<form
+					method="POST"
+					action="?/logout"
+					use:enhance={() => {
+						loggingOut = true;
+						return async ({ result }) => {
+							await invalidateAll();
+							loggingOut = false;
+						};
+					}}
+				>
+					<button
+						type="submit"
+						disabled={loggingOut}
+						class="flex items-center justify-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-950 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
+					>
+						<LogOut class="h-4 w-4" />
+						<span class="hidden sm:inline">{loggingOut ? 'در حال خروج...' : 'خروج'}</span>
+					</button>
+				</form>
+			</div>
 		</div>
 	</div>
 </header>

@@ -1,10 +1,8 @@
-import { env } from '$env/dynamic/private';
-import { building } from '$app/environment';
 import { getApiDateRange, toGregorian } from '$lib/date-utils';
 import { blackouts, locations, meta } from './db/schema';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
-if (!env.AUTH_TOKEN && !building) throw new Error('AUTH_TOKEN is not set');
+import { getAuthToken } from './auth';
 
 const API_URL = 'https://uiapi2.saapa.ir/api/ebills/PlannedBlackoutsReport';
 
@@ -39,11 +37,17 @@ async function fetchBlackoutsFromApi(
 	toDate: string
 ): Promise<ApiBlackout[]> {
 	try {
+		const authToken = await getAuthToken();
+		if (!authToken) {
+			console.error('No auth token available. Please authenticate first.');
+			return [];
+		}
+
 		const response = await fetch(API_URL, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json; charset=utf-8',
-				Authorization: `Bearer ${env.AUTH_TOKEN}`,
+				Authorization: `Bearer ${authToken}`,
 				Referer: 'https://bargheman.com/',
 				Origin: 'https://bargheman.com'
 			},
