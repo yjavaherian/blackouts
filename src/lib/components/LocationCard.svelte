@@ -12,7 +12,11 @@
 	let removing = $state(false);
 
 	function handlePrint() {
-		// Generate the print content
+		// Create the print window
+		const printWindow = window.open('', '_blank', 'width=800,height=600');
+		if (!printWindow) return;
+
+		// Generate the complete HTML document with embedded component data
 		const weekDates = getWeekDates();
 		const blackoutsByDate = groupBlackoutsByDate(location.blackouts);
 		const daysWithBlackouts = weekDates.map((day) => ({
@@ -20,11 +24,6 @@
 			blackouts: blackoutsByDate[day.date] || []
 		}));
 
-		// Create the print window
-		const printWindow = window.open('', '_blank', 'width=800,height=600');
-		if (!printWindow) return;
-
-		// Generate the HTML content
 		const printHTML = `
 			<!DOCTYPE html>
 			<html lang="fa" dir="rtl">
@@ -66,6 +65,7 @@
 					.title {
 						font-size: 24px;
 						font-weight: bold;
+						margin: 0;
 					}
 
 					.calendar {
@@ -105,6 +105,10 @@
 						font-size: 9px;
 					}
 
+					.day-cell:nth-child(7n) {
+						border-right: none;
+					}
+
 					.no-blackout {
 						border: 1px solid #666;
 						border-radius: 3px;
@@ -128,7 +132,6 @@
 			<body>
 				<div class="header">
 					<h1 class="title">تقویم قطعی برق ${location.name}</h1>
-					
 				</div>
 
 				<div class="calendar">
@@ -171,15 +174,13 @@
 		printWindow.document.write(printHTML);
 		printWindow.document.close();
 
-		// Wait for the content to load, then print and close
-		printWindow.onload = () => {
-			setTimeout(() => {
-				printWindow.print();
-				printWindow.onafterprint = () => {
-					printWindow.close();
-				};
-			}, 500);
-		};
+		// Use proper event handling instead of setTimeout
+		printWindow.addEventListener('load', () => {
+			printWindow.print();
+			printWindow.addEventListener('afterprint', () => {
+				printWindow.close();
+			});
+		});
 	}
 </script>
 

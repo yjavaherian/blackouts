@@ -86,7 +86,6 @@
 				};
 			}}
 		>
-			<input type="hidden" name="mobile" value={fields.mobile} />
 			<div class="mb-5">
 				<label for="code" class="mb-2 block font-medium text-gray-700">کد تایید</label>
 				<input

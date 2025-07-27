@@ -1,5 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes, scrypt } from 'crypto';
 import { promisify } from 'util';
+import { env } from '$env/dynamic/private';
 
 const scryptAsync = promisify(scrypt);
 const ALGORITHM = 'aes-256-gcm';
@@ -12,7 +13,10 @@ export async function encryptToken(token: string): Promise<string> {
 	if (!token) return token;
 
 	try {
-		const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
+		const encryptionKey = env.ENCRYPTION_KEY;
+		if (!encryptionKey) {
+			throw new Error('ENCRYPTION_KEY environment variable is required for security');
+		}
 		const salt = randomBytes(16);
 		const iv = randomBytes(16);
 		const key = await deriveKey(encryptionKey, salt);
@@ -35,7 +39,10 @@ export async function decryptToken(encryptedToken: string): Promise<string> {
 	if (!encryptedToken || !encryptedToken.includes(':')) return encryptedToken;
 
 	try {
-		const encryptionKey = process.env.ENCRYPTION_KEY || 'default-key-change-in-production';
+		const encryptionKey = env.ENCRYPTION_KEY;
+		if (!encryptionKey) {
+			throw new Error('ENCRYPTION_KEY environment variable is required for security');
+		}
 		const [saltHex, ivHex, authTagHex, encrypted] = encryptedToken.split(':');
 		const salt = Buffer.from(saltHex, 'hex');
 		const iv = Buffer.from(ivHex, 'hex');

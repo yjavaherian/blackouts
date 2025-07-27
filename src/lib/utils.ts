@@ -3,19 +3,22 @@ import type { CalendarDay, Blackout } from './types';
 
 /**
  * Gets the current week's dates starting from Saturday (Persian week start)
+ * Generates dates in chronological order for clarity
  */
 export function getWeekDates(): CalendarDay[] {
 	const today = new Date();
 	const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
 
 	// Calculate offset to get to Saturday (start of Persian week)
-	const saturdayOffset = dayOfWeek === 6 ? 0 : dayOfWeek === 0 ? -1 : -(dayOfWeek + 1);
+	// Saturday = 6, Sunday = 0, Monday = 1, etc.
+	const daysFromSaturday = dayOfWeek === 6 ? 0 : dayOfWeek + 1;
 
 	const weekDates: CalendarDay[] = [];
 
+	// Generate all 7 days starting from Saturday
 	for (let i = 0; i < 7; i++) {
 		const date = new Date(today);
-		date.setDate(today.getDate() + saturdayOffset + (6 - i));
+		date.setDate(today.getDate() - daysFromSaturday + i);
 
 		const dateString = date.toISOString().split('T')[0];
 		const jalaliDate = getJalaliDateString(dateString);
@@ -29,7 +32,8 @@ export function getWeekDates(): CalendarDay[] {
 		});
 	}
 
-	return weekDates;
+	// Persian calendar displays Saturday first, so reverse for display
+	return weekDates.reverse();
 }
 
 /**

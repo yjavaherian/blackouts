@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { validateBillId } from '$lib/utils';
+	import { focusTrap } from '$lib/actions/focus-trap';
 	import type { ActionData } from '$lib/types';
 
 	let {
@@ -21,22 +22,13 @@
 	let nameInput: HTMLInputElement | undefined = $state();
 	let billIdInput: HTMLInputElement | undefined = $state();
 
-	// Use $effect instead of reactive statements
-	$effect(() => {
-		if (isOpen && nameInput) {
-			// Focus the name input when dialog opens
-			setTimeout(() => nameInput?.focus(), 100);
-		}
-	});
-
+	// Handle successful form submission
 	$effect(() => {
 		if (form?.success === true && form?.type === 'addLocation') {
 			// Reset form and close dialog on successful submission
-			setTimeout(() => {
-				onClose();
-				name = '';
-				billId = '';
-			}, 100);
+			onClose();
+			name = '';
+			billId = '';
 		}
 	});
 
@@ -80,6 +72,7 @@
 			style="animation: slideUp 0.3s ease-out;"
 			role="presentation"
 			onclick={(e) => e.stopPropagation()}
+			use:focusTrap
 		>
 			<div class="mb-4 flex items-center justify-between">
 				<h2 id="dialog-title" class="text-xl font-bold text-gray-800">افزودن موقعیت جدید</h2>
@@ -106,7 +99,7 @@
 							name = '';
 							billId = '';
 							// Close dialog after successful submission
-							setTimeout(() => onClose(), 200);
+							onClose();
 						}
 					};
 				}}
