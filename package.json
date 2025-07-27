@@ -37,6 +37,7 @@
 		"vite": "^6.3.5"
 	},
 	"dependencies": {
+		"@deno/svelte-adapter": "^0.1.0",
 		"@libsql/client": "^0.14.0",
 		"drizzle-orm": "^0.40.1",
 		"jalaali-js": "^1.2.8",
