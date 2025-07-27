@@ -4,10 +4,10 @@
 	import { invalidateAll } from '$app/navigation';
 	import { formatLastRefresh } from '$lib/utils';
 
-	export let lastRefresh: string | undefined;
+	let { lastRefresh }: { lastRefresh: string | undefined } = $props();
 
-	let refreshing = false;
-	let loggingOut = false;
+	let refreshing = $state(false);
+	let loggingOut = $state(false);
 </script>
 
 <header class="mb-6 md:mb-8">

@@ -3,7 +3,7 @@
 	import { PartyPopper } from 'lucide-svelte';
 	import type { CalendarDay } from '$lib/types';
 
-	export let day: CalendarDay;
+	let { day }: { day: CalendarDay } = $props();
 </script>
 
 <div class="border-l border-gray-200 p-2 last:border-l-0 md:p-3 {day.isToday ? 'bg-blue-50' : ''}">

@@ -1,18 +1,19 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import type { ActionData } from '../../routes/$types';
 
-	export let form: any;
+	let { form }: { form: ActionData } = $props();
 
-	let fields = {
+	let fields = $state({
 		mobile: '',
 		code: ''
-	};
-	let sendOtpLoading = false;
-	let verifyOtpLoading = false;
+	});
+	let sendOtpLoading = $state(false);
+	let verifyOtpLoading = $state(false);
 
-	// Reactive validation
-	$: isMobileValid = /^09[0-9]{9}$/.test(fields.mobile);
-	$: isCodeValid = /^[0-9]{6}$/.test(fields.code);
+	// Reactive validation using $derived
+	let isMobileValid = $derived(/^09[0-9]{9}$/.test(fields.mobile));
+	let isCodeValid = $derived(/^[0-9]{6}$/.test(fields.code));
 </script>
 
 <div class="flex min-h-[60vh] items-center justify-center p-5">

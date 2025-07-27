@@ -5,29 +5,40 @@
 	import { validateBillId } from '$lib/utils';
 	import type { ActionData } from '$lib/types';
 
-	export let isOpen: boolean;
-	export let onClose: () => void;
-	export let form: ActionData | null | undefined;
+	let {
+		isOpen,
+		onClose,
+		form
+	}: {
+		isOpen: boolean;
+		onClose: () => void;
+		form: ActionData | null | undefined;
+	} = $props();
 
-	let adding = false;
-	let name = '';
-	let billId = '';
-	let nameInput: HTMLInputElement;
-	let billIdInput: HTMLInputElement;
+	let adding = $state(false);
+	let name = $state('');
+	let billId = $state('');
+	let nameInput: HTMLInputElement | undefined = $state();
+	let billIdInput: HTMLInputElement | undefined = $state();
 
-	$: if (isOpen && nameInput) {
-		// Focus the name input when dialog opens
-		setTimeout(() => nameInput?.focus(), 100);
-	}
+	// Use $effect instead of reactive statements
+	$effect(() => {
+		if (isOpen && nameInput) {
+			// Focus the name input when dialog opens
+			setTimeout(() => nameInput?.focus(), 100);
+		}
+	});
 
-	$: if (form?.success === true && form?.type === 'addLocation') {
-		// Reset form and close dialog on successful submission
-		setTimeout(() => {
-			onClose();
-			name = '';
-			billId = '';
-		}, 100);
-	}
+	$effect(() => {
+		if (form?.success === true && form?.type === 'addLocation') {
+			// Reset form and close dialog on successful submission
+			setTimeout(() => {
+				onClose();
+				name = '';
+				billId = '';
+			}, 100);
+		}
+	});
 
 	function handleDialogClick(event: MouseEvent) {
 		if (event.target === event.currentTarget) {
@@ -48,16 +59,16 @@
 		billId = input.value;
 	}
 
-	$: isFormValid = name.trim().length > 0 && validateBillId(billId);
+	let isFormValid = $derived(name.trim().length > 0 && validateBillId(billId));
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 {#if isOpen}
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
-		on:click={handleDialogClick}
-		on:keydown={handleKeydown}
+		onclick={handleDialogClick}
+		onkeydown={handleKeydown}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="dialog-title"
@@ -68,14 +79,13 @@
 			class="w-full max-w-md transform rounded-xl border bg-white p-6 shadow-2xl transition-all"
 			style="animation: slideUp 0.3s ease-out;"
 			role="presentation"
-			on:click|stopPropagation
-			on:keydown
+			onclick={(e) => e.stopPropagation()}
 		>
 			<div class="mb-4 flex items-center justify-between">
 				<h2 id="dialog-title" class="text-xl font-bold text-gray-800">افزودن موقعیت جدید</h2>
 				<button
 					type="button"
-					on:click={onClose}
+					onclick={onClose}
 					class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
 					aria-label="بستن"
 				>
@@ -125,7 +135,7 @@
 					<input
 						bind:this={billIdInput}
 						bind:value={billId}
-						on:input={handleBillIdInput}
+						oninput={handleBillIdInput}
 						type="text"
 						name="billId"
 						id="dialog-billId"
@@ -148,7 +158,7 @@
 				<div class="flex gap-3 pt-4">
 					<button
 						type="button"
-						on:click={onClose}
+						onclick={onClose}
 						class="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:outline-none"
 					>
 						انصراف

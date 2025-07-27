@@ -5,14 +5,17 @@
 	import { PartyPopper } from 'lucide-svelte';
 	import type { Location } from '$lib/types';
 
-	export let location: Location;
+	let { location }: { location: Location } = $props();
 
-	$: weekDates = getWeekDates();
-	$: blackoutsByDate = groupBlackoutsByDate(location.blackouts);
-	$: daysWithBlackouts = weekDates.map((day) => ({
-		...day,
-		blackouts: blackoutsByDate[day.date] || []
-	}));
+	// P-4: Convert to const as it doesn't depend on props, use $derived for blackoutsByDate
+	const weekDates = getWeekDates();
+	let blackoutsByDate = $derived(groupBlackoutsByDate(location.blackouts));
+	let daysWithBlackouts = $derived(
+		weekDates.map((day) => ({
+			...day,
+			blackouts: blackoutsByDate[day.date] || []
+		}))
+	);
 </script>
 
 <div class="overflow-hidden rounded-b-xl border border-gray-300 bg-white">
@@ -20,7 +23,7 @@
 	<div class="hidden md:block">
 		<!-- Calendar Grid Header -->
 		<div class="grid grid-cols-7 border-b border-gray-300">
-			{#each PERSIAN_WEEKDAYS.toReversed() as dayName, dayIndex}
+			{#each PERSIAN_WEEKDAYS as dayName, dayIndex}
 				<div
 					class="border-l border-gray-300 bg-gray-50 p-3 text-center font-semibold text-gray-700 last:border-l-0"
 				>
@@ -42,7 +45,7 @@
 
 	<!-- Mobile List View (visible only on mobile) -->
 	<div class="md:hidden">
-		{#each daysWithBlackouts.toReversed() as day, dayIndex}
+		{#each daysWithBlackouts as day, dayIndex}
 			<div class="border-b border-gray-100 last:border-b-0">
 				<div class=" px-4 py-3 {day.isToday ? 'bg-blue-50' : 'bg-gray-50'}">
 					<div class="flex items-center justify-between">

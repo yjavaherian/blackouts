@@ -1,4 +1,4 @@
-import { getJalaliDateString } from './date-utils';
+import { getJalaliDateString, PERSIAN_WEEKDAYS } from './date-utils';
 import type { CalendarDay, Blackout } from './types';
 
 /**
@@ -33,33 +33,20 @@ export function getWeekDates(): CalendarDay[] {
 }
 
 /**
- * Groups blackouts by date for easier lookup
+ * Groups blackouts by their outage date
  */
 export function groupBlackoutsByDate(blackouts: Blackout[]): Record<string, Blackout[]> {
-	return blackouts.reduce(
-		(acc, blackout) => {
-			if (!acc[blackout.outageDate]) {
-				acc[blackout.outageDate] = [];
-			}
-			acc[blackout.outageDate].push(blackout);
-			return acc;
-		},
-		{} as Record<string, Blackout[]>
-	);
-}
+	const grouped: Record<string, Blackout[]> = {};
 
-/**
- * Persian day names in correct order (Saturday first)
- */
-export const PERSIAN_WEEKDAYS = [
-	'شنبه',
-	'یکشنبه',
-	'دوشنبه',
-	'سه‌شنبه',
-	'چهارشنبه',
-	'پنجشنبه',
-	'جمعه'
-];
+	for (const blackout of blackouts) {
+		if (!grouped[blackout.outageDate]) {
+			grouped[blackout.outageDate] = [];
+		}
+		grouped[blackout.outageDate].push(blackout);
+	}
+
+	return grouped;
+}
 
 /**
  * Validates Bill ID format (should be 13 digits)
@@ -80,3 +67,6 @@ export function formatLastRefresh(isoString: string | null | undefined): string 
 		timeStyle: 'short'
 	}).format(date);
 }
+
+// Re-export PERSIAN_WEEKDAYS for convenience
+export { PERSIAN_WEEKDAYS };

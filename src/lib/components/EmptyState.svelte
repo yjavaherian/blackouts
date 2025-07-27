@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Plus, Lightbulb } from 'lucide-svelte';
 
-	export let onAddLocation: () => void;
+	let { onAddLocation }: { onAddLocation: () => void } = $props();
 </script>
 
 <div
@@ -19,7 +19,7 @@
 
 	<button
 		type="button"
-		on:click={onAddLocation}
+		onclick={onAddLocation}
 		class="flex items-center gap-2 rounded-lg bg-gray-900 px-6 py-3 font-medium text-white shadow-lg transition-all hover:bg-gray-800 hover:shadow-xl"
 	>
 		<Plus class="h-5 w-5" />

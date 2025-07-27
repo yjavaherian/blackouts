@@ -1,6 +1,15 @@
 import jalaali from 'jalaali-js';
 
-const PERSIAN_WEEKDAYS = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+// Export PERSIAN_WEEKDAYS for use in other files
+export const PERSIAN_WEEKDAYS = [
+	'یکشنبه',
+	'دوشنبه',
+	'سه‌شنبه',
+	'چهارشنبه',
+	'پنجشنبه',
+	'جمعه',
+	'شنبه'
+];
 
 export function toGregorian(jalaliDate: string): string {
 	// input format is YYYY/MM/DD
@@ -13,7 +22,7 @@ export function toGregorian(jalaliDate: string): string {
 }
 
 function getTodayJalali() {
-	const today = new Date();
+	const today = new Date(Date.now()); // More explicit date creation
 	return jalaali.toJalaali(today.getFullYear(), today.getMonth() + 1, today.getDate());
 }
 

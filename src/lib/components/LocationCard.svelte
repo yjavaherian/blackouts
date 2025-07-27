@@ -7,9 +7,9 @@
 	import { toAmPm } from '$lib/date-utils';
 	import type { Location } from '$lib/types';
 
-	export let location: Location;
+	let { location }: { location: Location } = $props();
 
-	let removing = false;
+	let removing = $state(false);
 
 	function handlePrint() {
 		// Generate the print content
@@ -132,16 +132,14 @@
 				</div>
 
 				<div class="calendar">
-					${PERSIAN_WEEKDAYS.toReversed()
-						.map(
-							(dayName, dayIndex) => `
+					${PERSIAN_WEEKDAYS.map(
+						(dayName, dayIndex) => `
 						<div class="day-header">
 							<div class="day-name">${dayName}</div>
 							<div class="day-date">${daysWithBlackouts[dayIndex]?.jalaliDate || ''}</div>
 						</div>
 					`
-						)
-						.join('')}
+					).join('')}
 					
 					${daysWithBlackouts
 						.map(
@@ -199,7 +197,7 @@
 			<!-- Print Button -->
 			<button
 				type="button"
-				on:click={handlePrint}
+				onclick={handlePrint}
 				class="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-800"
 				aria-label="چاپ تقویم"
 				title="چاپ تقویم این موقعیت"

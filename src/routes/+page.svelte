@@ -9,13 +9,14 @@
 	import FloatingActionButton from '$lib/components/FloatingActionButton.svelte';
 	import AuthForm from '$lib/components/AuthForm.svelte';
 
-	export let data: PageData;
-	export let form: ActionData;
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	let dialogOpen = false;
+	let dialogOpen = $state(false);
 
-	// Handle toast notifications
-	$: useToast(form);
+	// Handle toast notifications using $effect instead of reactive statement
+	$effect(() => {
+		useToast(form);
+	});
 
 	function openDialog() {
 		dialogOpen = true;
@@ -33,7 +34,7 @@
 <div dir="rtl" class="min-h-screen bg-gray-50 font-sans text-gray-900">
 	<div class="container mx-auto px-3 py-4 sm:p-6 lg:p-8">
 		{#if data.authenticated}
-			<AppHeader lastRefresh={data.lastRefresh} />
+			<AppHeader lastRefresh={data.lastRefresh ?? undefined} />
 
 			<main class="w-full">
 				{#if data.locations.length === 0}
